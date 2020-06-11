@@ -7,9 +7,11 @@ use Illuminate\Http\Request;
 class ecController extends Controller
 {
     public function display_table(){
+        $items = \App\Item::all();
+
         return view('ec_tool', [
             'title' => '商品管理',
-            'message' => 'ここにテーブルを表示',
+            'items' => $items,
         ]);
     }
     public function insert_item(Request $request){
@@ -18,7 +20,13 @@ class ecController extends Controller
             'name' => 'required|max:20',
             'price' => 'required|max:1000000',
             'stock' => 'required|max:10000',
-            
+            'image' => [
+                'file',
+                'image',
+                'mimes:jpeg,png',
+                'required',
+                'max:100',
+            ],
         ]);
 
         $filename = '';
@@ -29,7 +37,7 @@ class ecController extends Controller
             $path = $image->storeAs('photos', $filename, 'public');
         }
 
-        $item = new \App\Message;
+        $item = new \App\Item;
 
         $item->name = $request->name;
         $item->price = $request->price;
@@ -39,6 +47,12 @@ class ecController extends Controller
 
         $item->save();
 
+        return redirect('/ec_tool');
+    }
+
+    public function delete_item($id){
+        $item = \App\Item::find($id);
+        $item->delete();
         return redirect('/ec_tool');
     }
 }

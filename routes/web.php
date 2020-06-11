@@ -15,3 +15,5 @@ Route::get('/', function () {
     return view('welcome');
 });
 Route::get('/ec_tool', 'ecController@display_table');
+Route::post('/insert', 'ecController@insert_item');
+Route::delete('/ec_tool/{id}', 'ecController@delete_item');
