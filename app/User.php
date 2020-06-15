@@ -26,4 +26,16 @@ class User extends Authenticatable
     protected $hidden = [
         'password', 'remember_token',
     ];
+
+    public function carts() {
+        return $this->hasMany('App\Cart');
+    }
+    public function items() {
+        return $this->belongsToMany(
+          'App\Item', // 結びつけるモデル
+          'carts', // 中間テーブル
+          'user_id', // 中間テーブル内の自分のidのカラム名
+          'item_id' // 中間テーブル内の相手のidのカラム名
+        );
+      }
 }
