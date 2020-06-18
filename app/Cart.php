@@ -12,45 +12,56 @@ class Cart extends Model
         'amount',
     ];
 
-    public function item(){
-        return $this->belongsTo('App\Item', 'item_id');
+    public function item()
+    {
+        return $this->belongsTo('App\Item','item_id');
     }
 
-    public function user(){
+    public function user()
+    {
         return $this->belongsTo('\App\User');
     }
 
-    public function add_new_item($user_id, $item_id){
-        $this->user_id = $user_id;
-        $this->item_id = $item_id;
-        $this->amount = 1;
+    public static function add_new_item($user_id, $item_id)
+    {
+        $cart = new Cart;
+        $cart->user_id = $user_id;
+        $cart->item_id = $item_id;
+        $cart->amount = 1;
 
-        return $this->save();
+        return $cart->save();
     }
 
-    public function add_amount(){
+    public function add_amount()
+    {
         $amount = $this->amount;
         return $this->update(['amount' => $amount + 1]);
     }
 
-    public function change_amount($item_id, $new_amount){
+    public static function change_amount($item_id, $new_amount)
+    {
         $cart = Cart::where('item_id', $item_id)->first();
         return $cart->update(['amount' => $new_amount]);
     }
 
-    // public function get_carts_data($user_id){
-    //     $carts = $this::where('user_id', $user_id)->get();
-    //     foreach($carts as $cart){
-    //         $carts_data[]=[
-    //         'item_id'=>$cart->item_id,
-    //         'name'=>$cart->item->name,
-    //         'price'=>$cart->item->price,
-    //         'image'=>$cart->item->image,
-    //         'amount'=>$cart->amount,
-    //         ];
-    //     }
-    //     dd($carts_data);
-    //     return $carts_data;
-
-    // }
+    public static function get_carts_data($cart)
+    {
+        $price = $cart->item->price;
+        $amount = $cart->amount;
+        return array(
+        'item_id'=>$cart->item_id,
+        'name'=>$cart->item->name,
+        'price'=>$price,
+        'image'=>$cart->item->image,
+        'amount'=>$amount,
+        );
+    }
+    public static function sum_cart($carts)
+    {
+        $sum = 0;
+        foreach($carts as $cart){
+            $sum += $cart->item->price * $cart->amount;
+        }
+        return $sum;
+    }
 }

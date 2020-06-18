@@ -18,11 +18,12 @@ class Detail extends Model
     }
 
 
-    public function create_details($result_id, $cart){
-        $this->result_id = $result_id;
-        $this->item_id = $cart->item_id;
-        $this->amount = $cart->amount;
-        $this->save();
+    public static function create_details($result_id, $cart){
+        $details = new Detail;
+        $details->result_id = $result_id;
+        $details->item_id = $cart->item_id;
+        $details->amount = $cart->amount;
+        $details->save();
     }
 
     public static function get_details_data($result_id){

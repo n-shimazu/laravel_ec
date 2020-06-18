@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Cart;
 use App\Item;
 use App\Detail;
 use App\Result;
 use App\Http\Requests\AmountRequest;
+use \Auth;
 
 class CartsController extends Controller
 {
@@ -17,98 +19,75 @@ class CartsController extends Controller
 
     public function add(Request $request)
     {
-        $user_id = \Auth::user()->user_id;
+        $user_id = Auth::user()->user_id;
         $item_id = $request->item_id;
 
         $cart = Cart::where('user_id', $user_id)->where('item_id', $item_id)->first();
         
         if (empty($cart) === true) {
-            $cart = new Cart;
-            $cart->add_new_item($user_id, $item_id);
+            Cart::add_new_item($user_id, $item_id);
         } else {
             $cart->add_amount();
         }
         return redirect('/ec_index');
     }
 
-    public function display_cart(){
-        $user_id = \Auth::user()->user_id;
-        $sum = 0;
+    public function display_cart()
+    {
+        $user_id = Auth::user()->user_id;
         $carts_data = [];
 
         $carts = Cart::where('user_id', $user_id)->get();
         foreach($carts as $cart){
-            $price = $cart->item->price;
-            $amount = $cart->amount;
-            $sum += ($price * $amount);
-            $carts_data[]=[
-            'item_id'=>$cart->item_id,
-            'name'=>$cart->item->name,
-            'price'=>$price,
-            'image'=>$cart->item->image,
-            'amount'=>$amount,
-            ];
+            $carts_data[] = Cart::get_carts_data($cart);
         }
+
         return view('ec_cart', [
-            'title' => 'カート一覧',
             'carts_data' => $carts_data,
-            'sum' => $sum,
+            'sum' => Cart::sum_cart($carts),
         ]);
     }
-    public function update_amount(AmountRequest $request){
-        $cart = new Cart;
-        $cart->change_amount($request->item_id, $request->new_amount);
+    public function update_amount(AmountRequest $request)
+    {
+        
+        Cart::change_amount($request->item_id, $request->new_amount);
 
         return redirect('/ec_cart');
     }
     public function destroy_from_cart(Request $request){
-        $cart = Cart::where('item_id', $request->item_id);
-        $cart->delete();
+        Cart::where('item_id', $request->item_id)->delete();
 
         return redirect('/ec_cart');
     }
-    public function purchase_item(){
-        $user_id = \Auth::user()->user_id;
+    public function purchase_item()
+    {
+        $user_id = Auth::user()->user_id;
         $carts = Cart::where('user_id', $user_id)->get();
-        $error_msg = '';
-        $sum = 0;
 
+        DB::beginTransaction();
 
         foreach($carts as $cart){
-            $item_id = $cart->item->item_id;
-            $amount = $cart->amount;
+            $error_msgs[] = Item::check_stock($cart);
 
-            $item = Item::where('item_id', $item_id)->first();
+            Item::deduct_stock($cart);
 
-            $surplus = ($item->stock) - $amount;
-            if($surplus < 0){
-                return view('ec_error',[
-                    'error_msg' => $item->name,
-                ]);
-            }else{
-                $price = $cart->item->price;
-                $amount = $cart->amount;
-                $sum += ($price * $amount);
-
-                $item->update(['stock' => $surplus]);
-                $cart->delete();
-            }
+            $cart->delete();
+        }
+        $sum = Item::add_up($carts);
+            
+        $result = Result::create_result($user_id,$sum);
+        foreach($carts as $cart){
+            Detail::create_details($result->result_id, $cart);
         }
 
-            $result = new Result;
-            $result->create_result($user_id,$sum);
+        if (!empty(array_filter($error_msgs))){
+            DB::rollBack();
 
-            foreach($carts as $cart){
-                $details = new Detail;
-                $details->create_details($result->result_id, $cart);
-            }
+            return view('ec_error', compact('error_msgs'));
+        } else{
+            DB::commit();
 
-        return view('ec_finish', [
-            'title' => 'ご購入ありがとうございます',
-            'carts' => $carts,
-            'sum' => $sum,
-        ]);
-
-        // return view('ec_finish', compact('carts', 'sum'));
+            return view('ec_finish', compact('carts', 'sum'));
+        }
     }
 }
