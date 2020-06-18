@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ItemRequest;
 use App\Http\Requests\UpdateRequest;
 use App\Item;
+use App\Result;
+use App\Detail;
 
 class ecController extends Controller
 {
@@ -29,15 +31,15 @@ class ecController extends Controller
         return redirect('/ec_tool');
     }
 
-    public function delete_item($id){
-        $item = Item::find($id);
+    public function delete_item($item_id){
+        $item = Item::find($item_id);
         $item->delete();
         return redirect('/ec_tool');
     }
 
-    public function switch_status($id){
+    public function switch_status($item_id){
         $item = new Item;
-        $item->switch_status_item($id);
+        $item->switch_status_item($item_id);
         return redirect('/ec_tool');
     }
 
@@ -51,9 +53,22 @@ class ecController extends Controller
     public function display_open_items(){
         $items = Item::where('status', 1)->get();
 
-        return view('/ec_index',[
+        return view('ec_index',[
             'title' => '商品一覧',
             'items' => $items,
         ]);
+    }
+    public function display_results(){
+        $user = \Auth::user();
+        $results = Result::where('user_id', $user->user_id)->latest()->get();
+
+        return view('ec_result', [
+            'results' => $results,
+        ]);
+    }
+
+    public function display_detail($result_id){
+        $user_id = \Auth::user()->user_id;
+        return view('ec_detail', ['details_data' => Detail::get_details_data($result_id)]);
     }
 }

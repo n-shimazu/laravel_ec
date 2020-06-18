@@ -2,12 +2,19 @@
 
 namespace App;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 
 class Item extends Model
 {
+    protected $primaryKey = 'item_id';
+
     public function carts(){
-        return $this->hasMany('App\Cart');
+        return $this->hasMany('App\Cart', 'item_id');
+    }
+
+    public function details(){
+        return $this->hasMany('App\Detail', 'item_id');
     }
 
     protected $fillable = [
@@ -38,4 +45,5 @@ class Item extends Model
         $item = $this::find($item_id);
         return $item->update(['stock' => $new_stock]);
     }
+
 }

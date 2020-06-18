@@ -1,10 +1,10 @@
 @extends('layouts.default')
 
-@section('title', $title)
+@section('title', '商品管理')
 
 @section('content')
 
-    <h1>{{ $title }}</h1>
+    <h1>商品管理</h1>
 
     <p>現在のユーザー名: {{ Auth::user()->name }} </p>
     <form action="{{ url('/logout') }}" method="post">
@@ -69,25 +69,25 @@
                     <td>{{ $item->name }}</td>
                     <td>{{ $item->price }}</td>
                     <td>
-                        <form method="post" action="{{ url('/ec_tool/update/' . $item->id) }}">
+                        <form method="post" action="{{ url('/ec_tool/update/' . $item->item_id) }}">
                             {{ csrf_field() }}
                             {{ method_field('put') }}
                             <input type='number' name='new_stock' value="{{ $item->stock }}">
-                            <input type="hidden" name="item_id" value="{{ $item->id }}">
+                            <input type="hidden" name="item_id" value="{{ $item->item_id }}">
                             <input type="submit" value="変更">
                         </form>
                     </td>
                     <td>
-                        <form method="post" action="{{ url('/ec_tool/delete/' . $item->id) }}">
+                        <form method="post" action="{{ url('/ec_tool/delete/' . $item->item_id) }}">
                             {{ csrf_field() }}
                             {{ method_field('delete') }}
-                            <input type="hidden" name="item_id" value="{{ $item->id }}">
+                            <input type="hidden" name="item_id" value="{{ $item->item_id }}">
                             <input type="submit" value="削除">
                         </form>
-                        <form method="post" action="{{ url('/ec_tool/switch/' . $item->id) }}">
+                        <form method="post" action="{{ url('/ec_tool/switch/' . $item->item_id) }}">
                             {{ csrf_field() }}
                             {{ method_field('put') }}
-                            <input type="hidden" name="item_id" value="{{ $item->id }}">
+                            <input type="hidden" name="item_id" value="{{ $item->item_id }}">
                             <input type="submit" value="{{$item->status==1 ? '非公開にする' : '公開にする'}}">
                         </form>
                     </td>

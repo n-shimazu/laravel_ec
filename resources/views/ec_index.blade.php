@@ -1,15 +1,18 @@
 @extends('layouts.default')
 
-@section('title', $title)
+@section('title', '商品一覧')
 
 @section('content')
 
-<h1>{{ $title }}</h1>
+<h1>商品一覧</h1>
 <p>現在のユーザー名: {{ Auth::user()->name }} </p>
 <form action="{{ url('/logout') }}" method="post">
     {{ csrf_field() }}
     <button type="submit">ログアウト</button>
 </form>
+<div>
+    <a href="/ec_cart">カート</a>
+</div>
 
 @foreach($errors->all() as $error)
 <p class="error">{{ $error }}</p>
@@ -27,9 +30,9 @@
                 <span>{{ $item->price }}円</span>
                 </div>
                 <span>
-                    <form method="post" action="{{ url('/ec_index/add/' . $item->id) }}">
+                    <form method="post" action="{{ url('/ec_index/add/' . $item->item_id) }}">
                         {{ csrf_field() }}
-                        <input type="hidden" name="item_id" value="{{ $item->id }}">
+                        <input type="hidden" name="item_id" value="{{ $item->item_id }}">
                         @if(intval($item->stock) > 0)
                             <input type="submit" value="カートに追加する">
                         @else
